@@ -5,6 +5,10 @@
 */
 
 #include <LiquidCrystal.h>
+#include <dht11.h>
+#define DHT11PIN A2
+
+dht11 DHT11;
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 const int AirValue = 580;  // when 0% moisture
@@ -15,18 +19,18 @@ int soilMoisturePercent = 0;
 
 
 void setup() {
-  //Serial.begin(9600); // open serial port, set the baud rate to 9600 bps
+  Serial.begin(9600); // open serial port, set the baud rate to 9600 bps
   lcd.begin(16, 2);
 }
 void loop() {
-
+  int chk = DHT11.read(DHT11PIN);
   int tempMV = analogRead(tempPin);  
   float voltage = tempMV * 5.0; // voltage adjustments for 5v
   voltage /= 1024.0; 
-  float tempC = (voltage - 0.5) * 100 ;  celcius conversion
+  float tempC = (voltage - 0.5) * 100 ;  // celcius conversion
   
   soilMoistureValue = analogRead(A0);  //put Sensor insert into soil
-  Serial.println(soilMoistureValue);
+  //Serial.println(soilMoistureValue);
   soilMoisturePercent = map(soilMoistureValue, AirValue, WaterValue, 0, 100);
   
   // first two cases to adjust to the current environment.
@@ -52,20 +56,36 @@ void loop() {
     }
   else if(soilMoisturePercent >0 && soilMoisturePercent < 100)
   {
-    Serial.print(soilMoisturePercent);
-    Serial.println("%");
+    //Serial.print(soilMoisturePercent);
+    //Serial.println("%");
+
+    float humidity = (float)DHT11.humidity;
+    float temperature = (float)DHT11.temperature;
+    
     lcd.setCursor(0, 0);
     lcd.print("Soil Moisture");
     lcd.setCursor(0, 1);
     lcd.print(soilMoisturePercent);
-    lcd.print(" %");
+    lcd.print("%");
     delay(1000);
     lcd.clear();
 
     lcd.setCursor(0,0);
-    lcd.print("Temp");
+    lcd.print("Temperature");
     lcd.setCursor(0,1);
     lcd.print(tempC);
+    lcd.print("C");
+    
+    delay(1000);
+    lcd.clear();
+
+    lcd.setCursor(0,0);
+    lcd.print("Humidity");
+    lcd.setCursor(0,1);
+    lcd.print(humidity);
+    lcd.print("%");
+    Serial.println(String(soilMoisturePercent) + "z" + String(temperature) + "z" + String(humidity));
+
     delay(1000);
     lcd.clear();
   }  
